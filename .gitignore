@@ -1,0 +1,7 @@
+build/
+*.so
+*.o
+Makefile
+.qmake.stash
+moc_*
+__pycache__/

@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm --needed base-devel git qt6-base hidapi pkgconf
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build plugin
+        run: |
+          mkdir build && cd build
+          qmake6 ../AkkoGem01Plugin.pro
+          make -j"$(nproc)"
+
+      - name: Build CLI tool
+        run: g++ -std=c++17 -O2 -Wall -Wextra -Isrc tools/akko_via_cli.cpp src/ViaKeyboard.cpp $(pkg-config --cflags --libs hidapi-hidraw) -o build/akko_via_cli
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenRGBAkkoGem01Plugin-linux-x86_64
+          path: |
+            build/libOpenRGBAkkoGem01Plugin.so
+            build/akko_via_cli
+            udev/60-akko-gem01.rules
