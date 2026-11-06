@@ -4,8 +4,6 @@ An [OpenRGB](https://openrgb.org) 1.0 plugin that adds the **AKKO Gem 01** keybo
 (model `103-Gem1B-005`, USB `342d:e4e3`) as a device. It works with the **stock
 VIA firmware**: no flashing is needed.
 
-*Русская версия ниже.*
-
 ## What works
 
 The stock firmware exposes lighting only through VIA's RGB Matrix channel. So
@@ -34,8 +32,8 @@ sudo udevadm control --reload
 sudo udevadm trigger --subsystem-match=hidraw --subsystem-match=usb
 ```
 
-This rule also fixes `NotAllowedError: Failed to open the device` in VIA
-(usevia.app) in Chromium.
+Without it the plugin cannot open the keyboard unless OpenRGB runs as root:
+OpenRGB's own udev rules do not cover AKKO devices.
 
 ### 2. Build
 
@@ -71,52 +69,13 @@ g++ -std=c++17 -Isrc tools/akko_via_cli.cpp src/ViaKeyboard.cpp $(pkg-config --c
 ./akko_via_cli save
 ```
 
-`tools/via_probe.py` and `tools/via_stress.py` are diagnostic scripts written in
-pure Python with no dependencies. They talk to `/dev/hidraw*` directly.
-
-## Troubleshooting VIA (usevia.app) on Linux
-
-* `NotAllowedError: Failed to open the device`: the udev rule is missing (see above).
-* Endless loading plus many `Receiving incorrect response for command` errors:
-  someone else is talking to the same raw HID interface at the same time.
-  Typical causes are two usevia.app tabs or windows, or VIA running next to
-  OpenRGB with this plugin. Every program that has the interface open receives
-  every response. VIA then picks up the wrong ones and never recovers. Use one
-  of them at a time. The plugin itself ignores foreign responses.
-* `Fetching v3 definition failed` is expected. AKKO's definition is not in VIA's
-  repository. Load `gem_01.json` from <https://file.akkogear.com/gem_01.zip>
-  in VIA's *Design* tab.
-
 ## Protocol notes
 
 * Raw HID interface: usage page `0xFF60`, usage `0x61`, 32-byte reports, VIA protocol 12.
 * `07 03 <id> <data>` / `08 03 <id>`: set or get RGB Matrix value; `09 03`: save.
   The value IDs are 1 = brightness, 2 = effect, 3 = speed, 4 = color (hue, saturation).
-* The effect numbering comes from AKKO's VIA definition (`gem_01.json`).
-
----
-
-# Плагин OpenRGB для AKKO Gem 01
-
-Плагин для OpenRGB 1.0. Он добавляет клавиатуру **AKKO Gem 01** (`103-Gem1B-005`,
-USB `342d:e4e3`) как устройство и работает с **заводской прошивкой VIA**,
-перепрошивка не нужна.
-
-**Что умеет:**
-* режим **Direct**: вся клавиатура одного цвета из OpenRGB. Подходит для профилей, плагинов эффектов и SDK;
-* все 46 эффектов прошивки с яркостью, скоростью и цветом;
-* кнопка **Save To Device** записывает настройки в EEPROM. Без неё после переподключения вернутся старые.
-
-**Ограничения:** с заводской прошивкой нельзя задать отдельный цвет каждой
-клавише. Работает только по USB-кабелю.
-
-**Установка:** см. шаги 1–3 выше: udev-правило, сборка через `qmake6`/`make install`,
-полный перезапуск OpenRGB.
-
-**VIA бесконечно грузится** и пишет `Receiving incorrect response for command`:
-это значит, что с клавиатурой одновременно общаются две программы. Например,
-открыты две вкладки usevia.app или VIA запущена вместе с OpenRGB. Закройте
-лишнее.
+* The effect numbering comes from AKKO's VIA definition (`gem_01.json` from
+  <https://file.akkogear.com/gem_01.zip>).
 
 ## License
 

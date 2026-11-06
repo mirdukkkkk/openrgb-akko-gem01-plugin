@@ -1,4 +1,4 @@
 # AKKO Gem 01 (and other AKKO 0x342d devices): give the logged-in user access
-# to the hidraw interfaces (needed by VIA in Chromium and by OpenRGB).
+# to the hidraw interfaces (needed by the OpenRGB plugin).
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="342d", TAG+="uaccess"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="342d", TAG+="uaccess"
